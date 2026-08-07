@@ -10,6 +10,7 @@
 - [Architecture](docs/ARCHITECTURE.md) — requirements, diagram, components, data flow
 - [Architecture Decision Records](docs/adr/) — the *why* behind each choice
 - [Roadmap](docs/ROADMAP.md) — milestones with Definition of Done
+- [Engineering Mindset](docs/ENGINEERING-MINDSET.md) — how decisions are reasoned about (design-first, trade-offs, failure-first)
 
 ## Architecture at a glance
 ```
