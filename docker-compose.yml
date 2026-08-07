@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pixel
+      POSTGRES_PASSWORD: pixel
+      POSTGRES_DB: pixelpipe
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixel"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine   # bản 'management' có UI web
+    ports:
+      - "5672:5672"     # cổng AMQP (app nói chuyện qua đây)
+      - "15672:15672"   # cổng UI quản trị (bạn xem queue qua trình duyệt)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"     # S3 API (app dùng qua boto3)
+      - "9001:9001"     # console web (bạn xem file qua trình duyệt)
+    volumes:
+      - minio_data:/data
+
+volumes:
+  minio_data:
