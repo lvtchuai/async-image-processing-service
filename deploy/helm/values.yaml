@@ -1,0 +1,28 @@
+image:
+  pullPolicy: IfNotPresent
+
+api:
+  image: pixelpipe-api
+  tag: dev
+  replicas: 1
+worker:
+  image: pixelpipe-worker
+  tag: dev
+  replicas: 1
+
+config:
+  bucket: pixelpipe
+  queue: image_jobs
+
+# Infra in-cluster: BẬT cho minikube. Lên cloud sẽ tắt và trỏ sang RDS/AmazonMQ/S3.
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  auth: { user: pixel, password: pixel, db: pixelpipe }
+rabbitmq:
+  enabled: true
+  image: rabbitmq:3.13-management-alpine
+minio:
+  enabled: true
+  image: minio/minio:latest
+  auth: { user: minioadmin, password: minioadmin }

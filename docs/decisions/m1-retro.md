@@ -1,6 +1,6 @@
 # Retro — M1 (App skeleton)
 
-**Ngày:** (điền)
+**Ngày:** 07-08-2026
 
 ## Chạy tốt điều gì?
 - **Thiết kế trước, code sau** thật sự có tác dụng: quyết định thứ tự `a→b→c` (lưu file → tạo

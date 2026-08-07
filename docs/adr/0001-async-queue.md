@@ -1,6 +1,6 @@
 # ADR-0001: Xử lý ảnh bất đồng bộ qua message queue
 
-**Trạng thái:** Accepted · **Ngày:** (điền)
+**Trạng thái:** Accepted · **Ngày:** 07-08-2026
 
 ## Context
 Xử lý ảnh tốn CPU và thời gian (100ms–vài giây/ảnh). Làm đồng bộ trong HTTP request gây

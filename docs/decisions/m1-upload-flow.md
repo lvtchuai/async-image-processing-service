@@ -1,6 +1,6 @@
 # Decision — Thứ tự thao tác khi upload & cách chịu lỗi (M1)
 
-**Ngày:** (điền) · **Bối cảnh:** M1, endpoint `POST /images`
+**Ngày:** 07-08-2026 · **Bối cảnh:** M1, endpoint `POST /images`
 
 ## Vấn đề
 Khi nhận một ảnh, API phải làm 3 việc trên 3 hệ thống khác nhau: (a) lưu file gốc vào object

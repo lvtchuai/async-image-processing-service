@@ -1,6 +1,6 @@
 # ADR-0002: RabbitMQ làm message broker
 
-**Trạng thái:** Accepted · **Ngày:** (điền)
+**Trạng thái:** Accepted · **Ngày:** 07-08-2026
 
 ## Context
 Cần một hàng đợi để API đẩy job và worker lấy job, có hỗ trợ **retry** và **dead-letter queue**,

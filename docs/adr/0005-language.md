@@ -1,6 +1,6 @@
 # ADR-0005: Python (FastAPI + Pillow) cho API và Worker
 
-**Trạng thái:** Accepted · **Ngày:** (điền)
+**Trạng thái:** Accepted · **Ngày:** 07-08-2026
 
 ## Context
 Cần ngôn ngữ viết nhanh cho cả API và worker xử lý ảnh, có thư viện ảnh tốt, và expose

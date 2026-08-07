@@ -1,6 +1,6 @@
 # ADR-0006: Monorepo với ranh giới rõ ràng
 
-**Trạng thái:** Accepted · **Ngày:** (điền)
+**Trạng thái:** Accepted · **Ngày:** 07-08-2026
 
 ## Context
 Project có nhiều thành phần (api, worker, frontend, hạ tầng, deploy). Cần cấu trúc dễ điều
