@@ -1,6 +1,6 @@
 # ADR-0003: Object storage (MinIO local / S3 cloud) cho file
 
-**Trạng thái:** Accepted · **Ngày:** (điền)
+**Trạng thái:** Accepted · **Ngày:** 07-08-2026
 
 ## Context
 Cần lưu ảnh gốc + các biến thể (nhị phân, có thể lớn), truy cập qua URL, và giống nhau giữa
