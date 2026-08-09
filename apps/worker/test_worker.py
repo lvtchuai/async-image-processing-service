@@ -1,6 +1,11 @@
 import io
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from worker import process_image
+import pytest
+
+def test_process_image_rejects_non_image():
+    with pytest.raises(UnidentifiedImageError):
+        process_image(b"this is not an image")
 
 
 def _sample_png(w=1000, h=1000):
