@@ -1,0 +1,42 @@
+# Secret riêng cho KEDA — host dùng FQDN (xem gotcha bên dưới)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keda-rabbitmq
+  namespace: pixelpipe
+type: Opaque
+stringData:
+  host: "amqp://guest:guest@rabbitmq.pixelpipe.svc.cluster.local:5672/"
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: rabbitmq-auth
+  namespace: pixelpipe
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: keda-rabbitmq
+      key: host
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: worker-scaler
+  namespace: pixelpipe
+spec:
+  scaleTargetRef:
+    name: worker
+  minReplicaCount: 0        # scale-to-zero (đã biện minh: hệ thống async)
+  maxReplicaCount: 10
+  pollingInterval: 15       # KEDA kiểm queue mỗi 15s
+  cooldownPeriod: 60        # chờ 60s rảnh mới co về 0
+  triggers:
+    - type: rabbitmq
+      metadata:
+        protocol: amqp
+        queueName: image_jobs
+        mode: QueueLength
+        value: "5"          # ~5 message chờ / worker
+      authenticationRef:
+        name: rabbitmq-auth

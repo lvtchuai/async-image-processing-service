@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: worker
 spec:
-  replicas: {{ .Values.worker.replicas }}
+  # replicas: {{ .Values.worker.replicas }}
   selector: { matchLabels: { app: worker } }
   template:
     metadata: { labels: { app: worker } }
