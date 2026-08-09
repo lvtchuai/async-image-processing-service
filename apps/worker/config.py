@@ -4,6 +4,8 @@ import os
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://pixel:pixel@localhost:5432/pixelpipe")
 RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/")
 QUEUE_NAME   = os.getenv("QUEUE_NAME", "image_jobs")
+DLQ_NAME     = os.getenv("DLQ_NAME", "image_jobs_dlq")
+MAX_ATTEMPTS = int(os.getenv("MAX_ATTEMPTS", "4"))
 
 S3_ENDPOINT   = os.getenv("S3_ENDPOINT", "http://localhost:9000")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")
