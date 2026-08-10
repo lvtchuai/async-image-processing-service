@@ -1,0 +1,11 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: worker
+  namespace: monitoring
+  labels: { release: monitoring }
+spec:
+  namespaceSelector: { matchNames: [pixelpipe] }
+  selector: { matchLabels: { app: worker } }
+  endpoints:
+    - { port: metrics, interval: 15s }

@@ -1,0 +1,8 @@
+prometheus:
+  prometheusSpec:
+    # cho Prometheus nhận ServiceMonitor mình tự viết (bài học từ ShortLink)
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    retention: 3d
+grafana:
+  adminPassword: admin

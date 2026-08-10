@@ -1,33 +1,45 @@
 # Decision — Observability (M6)
 
-**Ngày:** <điền> · **Bối cảnh:** M6, đo & cảnh báo cho hệ async
-
-> Điền vào các `<...>`. Câu hỏi gợi ý (in nghiêng) là *cái cần nghĩ*.
+**Ngày:** 10-08-2026 · **Bối cảnh:** M6, đo & cảnh báo cho hệ async
 
 ## Vấn đề
-<*Hệ async này cần đo GÌ để biết nó khỏe? Nghĩ theo: throughput, tồn đọng, thất bại, tài nguyên.
-Cụ thể: queue depth, thời gian xử lý mỗi ảnh (p95), tỉ lệ job vào DLQ, số worker theo thời gian.*>
+Hệ async cần biết: **tồn đọng** (queue dồn?), **nghiệp vụ** (xử lý mỗi ảnh nhanh/chậm?),
+**thất bại** (job vào DLQ?), **năng lực** (mấy worker đang chạy?). Không đo được thì "mù".
 
-## Phương án
-- **Nguồn metric**: <*app tự expose (Prometheus client trong worker) vs RabbitMQ exporter (queue
-  depth) vs cả hai? Cái nào cho metric nghiệp vụ (thời gian xử lý/ảnh)?*>
-- ⭐ **Scrape worker khi nó SCALE-TO-ZERO**: <*Worker có thể = 0 pod. Prometheus scrape AI khi
-  không có pod nào? → có nên đẩy metric qua Pushgateway, hay chấp nhận chỉ đo queue-depth từ
-  RabbitMQ khi worker vắng? Đây là mâu thuẫn thật giữa scale-to-zero và pull-based monitoring.*>
+## Phương án & phân vai (đã chốt)
+- **RabbitMQ exporter** → **queue depth** + **DLQ depth** (tình trạng tồn đọng toàn hệ). RabbitMQ
+  biết "có 120 message chờ" nhưng **không biết mỗi ảnh tốn bao giây**.
+- **Worker tự expose metrics** (Prometheus client) → **nghiệp vụ**: thời gian xử lý/ảnh (histogram
+  p95), số job done/failed/dlq. Worker chỉ biết job *nó* đang xử lý.
+- **Không dùng Pushgateway**: chỉ cần khi job cực ngắn/batch biến mất trước khi scrape — không phải
+  ca của ta.
 
-## Quyết định
-<*Chốt: đo gì, từ đâu; xử lý bài toán scrape-khi-scale-to-zero ra sao.*>
+## ⭐ Quyết định — xử lý scrape khi worker SCALE-TO-ZERO
+Khi worker = 0 pod → **không có worker metrics để scrape** (và Prometheus báo target down). Chấp
+nhận điều này, vì:
+- Lúc worker = 0, thứ ta *cần biết* là **"có backlog dồn mà không ai xử lý không?"** → câu đó do
+  **RabbitMQ exporter** trả lời (nó **luôn chạy**, độc lập với worker). Đây là "con mắt luôn mở".
+- Worker business metrics chỉ tồn tại **khi có worker** — hợp lý, vì chỉ khi *đang xử lý* mới quan
+  tâm thời gian xử lý.
+- ⇒ **KHÔNG alert "worker target down"** (0 pod là trạng thái bình thường của scale-to-zero, không
+  phải sự cố).
 
-## Cảnh báo (alert)
-<*Alert KHI NÀO? Gợi ý: DLQ tăng (job hỏng hàng loạt); queue dồn mãi không giảm (worker chết /
-KEDA không scale); p95 xử lý vọt. Ngưỡng + thời gian giữ (`for`) bao lâu để tránh báo giả?*>
+## Cảnh báo (alert) — triết lý "không tự phục hồi", không phải "vừa vượt ngưỡng"
+- **QueueBacklog**: queue depth cao **liên tục > 5 phút** (`for: 5m`) → KEDA/worker không theo kịp
+  (không phải spike thoáng qua — hệ vốn tự scale).
+- **DLQGrowing**: DLQ depth tăng > 5 phút → job hỏng hàng loạt.
+- **SlowProcessing**: p95 xử lý cao kéo dài.
+Ngưỡng + `for` để tránh báo giả khi hệ đang tự scale/tự phục hồi.
 
 ## Cạnh biên / hệ quả
-<*Metric từ worker ephemeral có bị mất khi pod chết? Pushgateway thêm thành phần phải vận hành?*>
+- Worker ephemeral: metric mất khi pod chết — chấp nhận (Prometheus đã tổng hợp theo thời gian khi
+  còn scrape được; khoảng trống lúc 0 worker là *đúng thiết kế*).
+- Thêm **RabbitMQ exporter** = một thành phần phải vận hành.
 
 ## Cách verify
-<*Bơm tải → Grafana thấy queue depth + số worker + p95. Ép nhiều job hỏng → thấy DLQ rate tăng +
-alert bắn.*>
+- Bơm tải → Grafana thấy **queue depth + số worker (0→N→0) + p95 xử lý**.
+- Bơm nhiều file rác → **DLQ depth tăng** → alert `DLGGrowing` bắn sau `for`.
 
 ## Làm ở đâu
-<*M6: instrument worker/queue metrics + dashboard + alert rules.*>
+M6: worker instrument (prometheus_client + /metrics) · kube-prometheus-stack · RabbitMQ metrics ·
+ServiceMonitor · dashboard · PrometheusRule (alerts).

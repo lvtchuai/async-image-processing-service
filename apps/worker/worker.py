@@ -2,11 +2,15 @@ import io
 import json
 import pika
 from PIL import Image
-
 import config
 import storage
 from models import SessionLocal, Job
 from PIL import Image, UnidentifiedImageError
+import time
+from prometheus_client import Counter, Histogram, start_http_server
+
+JOBS = Counter("pixelpipe_jobs_total", "Số job theo kết quả", ["result"])   # done|poison|retry|exhausted
+PROC = Histogram("pixelpipe_processing_seconds", "Thời gian xử lý ảnh (giây)")
 
 # Lỗi "độc" (deterministic): retry vô ích -> thẳng DLQ
 POISON_ERRORS = (UnidentifiedImageError,)
@@ -47,22 +51,28 @@ def handle_job(job_id: str) -> str:
         original_key = job.original_key
         db.commit()
 
+    start = time.monotonic()                                    # +metric
     try:
         data = storage.download_bytes(original_key)
         for suffix, (blob, ctype) in process_image(data).items():
             storage.upload_bytes(f"{job_id}/{suffix}", blob, ctype)   # key theo job_id -> idempotent
+        PROC.observe(time.monotonic() - start)                  # +metric (chỉ đo lần thành công)
         with SessionLocal() as db:
             db.get(Job, job_id).status = "done"; db.commit()
+        JOBS.labels("done").inc()                               # +metric
         print(f"[ok] {job_id} done"); return "ack"
 
     except POISON_ERRORS as err:       # lỗi độc -> DLQ ngay, không
         _fail(job_id, f"poison: {err}")
+        JOBS.labels("poison").inc()                             # +metric
         print(f"[poison->dlq] {job_id}: {err}"); return "dlq"
 
     except Exception as err:           # lỗi tạm -> retry có giới h
         if attempts < config.MAX_ATTEMPTS:
+            JOBS.labels("retry").inc()                          # +metric
             print(f"[retry {attempts}/{config.MAX_ATTEMPTS}] {job_id}")
         _fail(job_id, f"exhausted after {attempts}: {err}")
+        JOBS.labels("exhausted").inc()                          # +metric
         print(f"[exhausted->dlq] {job_id}: {err}"); return "dlq"
 
 
@@ -79,6 +89,7 @@ def on_message(ch, method, properties, body):
 
 
 def main():
+    start_http_server(9100)          # +metric: expose /metrics ở cổng 9100 (chạy nền)
     conn = pika.BlockingConnection(pika.URLParameters(config.RABBITMQ_URL))
     ch = conn.channel()
     ch.queue_declare(queue=config.DLQ_NAME, durable=True)

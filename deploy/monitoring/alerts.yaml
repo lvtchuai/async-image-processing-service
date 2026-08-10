@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pixelpipe-alerts
+  namespace: monitoring
+  labels: { release: monitoring }
+spec:
+  groups:
+    - name: pixelpipe.rules
+      rules:
+        - alert: QueueBacklog
+          # queue dồn LIÊN TỤC 5 phút -> KEDA/worker không theo kịp (không phải spike thoáng qua)
+          expr: rabbitmq_queue_messages > 20
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: "Backlog không tự giải phóng >5 phút"
+        - alert: JobsFailingToDLQ
+          # job liên tục rơi vào DLQ (poison/exhausted) -> hỏng hàng loạt
+          expr: sum(rate(pixelpipe_jobs_total{result=~"poison|exhausted"}[5m])) > 0.1
+          for: 5m
+          labels: { severity: critical }
+          annotations:
+            summary: "Job liên tục thất bại vào DLQ"
