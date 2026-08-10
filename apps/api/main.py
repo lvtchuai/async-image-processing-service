@@ -35,7 +35,7 @@ def healthz():
 async def upload_image(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED:
         raise HTTPException(status_code=400, detail=f"unsupported type: {file.content_type}")
-    data = await file.read()
+    data = file.file.read()          # đọc SYNC (bỏ 'await file.read()')
     if not data:
         raise HTTPException(status_code=400, detail="empty file")
     if len(data) > MAX_BYTES:

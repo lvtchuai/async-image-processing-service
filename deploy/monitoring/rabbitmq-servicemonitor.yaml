@@ -1,0 +1,11 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rabbitmq
+  namespace: monitoring
+  labels: { release: monitoring }
+spec:
+  namespaceSelector: { matchNames: [pixelpipe] }
+  selector: { matchLabels: { app: rabbitmq } }
+  endpoints:
+    - { port: metrics, interval: 15s }

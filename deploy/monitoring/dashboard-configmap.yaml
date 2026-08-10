@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pixelpipe-dashboard
+  namespace: monitoring
+  labels: { grafana_dashboard: "1" }
+data:
+  pixelpipe.json: |
+    {
+      "title": "PixelPipe — Async Pipeline", "uid": "pixelpipe", "schemaVersion": 39,
+      "time": { "from": "now-30m", "to": "now" }, "tags": ["pixelpipe"],
+      "panels": [
+        { "id":1,"type":"timeseries","title":"Queue backlog (RabbitMQ — mắt luôn mở)",
+          "gridPos":{"h":8,"w":12,"x":0,"y":0},
+          "datasource":{"type":"prometheus","uid":"prometheus"},
+          "targets":[{"refId":"A","datasource":{"type":"prometheus","uid":"prometheus"},
+            "expr":"rabbitmq_queue_messages","legendFormat":"messages"}] },
+        { "id":2,"type":"timeseries","title":"Worker replicas (KEDA scale 0→N→0)",
+          "gridPos":{"h":8,"w":12,"x":12,"y":0},
+          "fieldConfig":{"defaults":{"min":0},"overrides":[]},
+          "datasource":{"type":"prometheus","uid":"prometheus"},
+          "targets":[{"refId":"A","datasource":{"type":"prometheus","uid":"prometheus"},
+            "expr":"kube_deployment_status_replicas{namespace=\"pixelpipe\",deployment=\"worker\"}","legendFormat":"workers"}] },
+        { "id":3,"type":"timeseries","title":"Thời gian xử lý p95 (giây)",
+          "gridPos":{"h":8,"w":12,"x":0,"y":8},"fieldConfig":{"defaults":{"unit":"s"},"overrides":[]},
+          "datasource":{"type":"prometheus","uid":"prometheus"},
+          "targets":[{"refId":"A","datasource":{"type":"prometheus","uid":"prometheus"},
+            "expr":"histogram_quantile(0.95, sum(rate(pixelpipe_processing_seconds_bucket[5m])) by (le))","legendFormat":"p95"}] },
+        { "id":4,"type":"timeseries","title":"Job rate theo kết quả",
+          "gridPos":{"h":8,"w":12,"x":12,"y":8},
+          "datasource":{"type":"prometheus","uid":"prometheus"},
+          "targets":[{"refId":"A","datasource":{"type":"prometheus","uid":"prometheus"},
+            "expr":"sum by (result)(rate(pixelpipe_jobs_total[1m]))","legendFormat":"{{result}}"}] }
+      ]
+    }
