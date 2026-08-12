@@ -23,7 +23,7 @@ User → API (FastAPI) ──enqueue──▶ RabbitMQ ──consume──▶ Wo
 | M4 | Resilience (retry + dead-letter queue) | [m4-resilience.md](m4-resilience.md) |
 | M5 | CI/CD (GitHub Actions, GHCR, SHA tag) | [m5-cicd.md](m5-cicd.md) |
 | M6 | Observability (metrics, dashboard, alert) | [m6-observability.md](m6-observability.md) |
-| M7 | Cloud (Terraform → AWS) | *(sắp làm)* |
+| M7 | Cloud full-managed (EKS + S3 + RDS + Amazon MQ) | [m7-cloud.md](m7-cloud.md) |
 
 ## Quy ước
 - Lệnh chạy **local dev**: trong `apps/*` với venv Python.

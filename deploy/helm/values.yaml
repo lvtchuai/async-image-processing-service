@@ -14,6 +14,10 @@ config:
   bucket: pixelpipe
   queue: image_jobs
 
+# Cloud mode: enabled=false -> dùng infra in-cluster (local). true -> trỏ RDS/AmazonMQ/S3.
+cloud:
+  enabled: false
+
 # Infra in-cluster: BẬT cho minikube. Lên cloud sẽ tắt và trỏ sang RDS/AmazonMQ/S3.
 postgres:
   enabled: true

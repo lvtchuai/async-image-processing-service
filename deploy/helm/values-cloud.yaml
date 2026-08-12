@@ -1,0 +1,14 @@
+# Values cho môi trường CLOUD (EKS + managed AWS).
+# Tắt infra in-cluster; bật cloud mode. Giá trị NHẠY CẢM (url có mật khẩu, S3 keys)
+# truyền qua --set lúc deploy (KHÔNG commit vào đây).
+postgres: { enabled: false }
+rabbitmq: { enabled: false }
+minio:    { enabled: false }
+
+cloud:
+  enabled: true
+  # endpoint region dạng CHUẨN (dấu chấm) -> presigned URL SigV4 khớp chữ ký.
+  # (Để "" boto3 cũ có thể sinh endpoint dạng 's3-region' gây SignatureDoesNotMatch.)
+  s3Endpoint: "https://s3.ap-southeast-1.amazonaws.com"
+  s3Region: ap-southeast-1
+  # databaseUrl / rabbitmqUrl / s3Bucket / s3AccessKey / s3SecretKey -> qua --set
